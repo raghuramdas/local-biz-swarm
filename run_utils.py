@@ -32,7 +32,9 @@ def _bootstrap() -> None:
         import agency_swarm  # noqa: F401
     except ImportError:
         print("Installing dependencies, please wait…\n")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", str(_repo)])
+        if not shutil.which("uv"):
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "uv"])
+        subprocess.check_call(["uv", "pip", "install", str(_repo)])
         print("\nDone.\n")
 
     # Ensure the Playwright browser binary for the installed playwright version
