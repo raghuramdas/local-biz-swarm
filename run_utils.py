@@ -24,7 +24,7 @@ def _resolve_bin_name() -> str:
 # is safe to call from outside the venv.
 def _bootstrap() -> None:
     _repo = Path(__file__).resolve().parent
-    # Ensure deps are present — install into the current Python environment.
+    # Ensure deps are present.
     try:
         import dotenv        # noqa: F401
         import rich          # noqa: F401
@@ -32,7 +32,7 @@ def _bootstrap() -> None:
         import agency_swarm  # noqa: F401
     except ImportError:
         print("Installing dependencies, please wait…\n")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", str(_repo)])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", str(_repo)])
         print("\nDone.\n")
 
     # Ensure the Playwright browser binary for the installed playwright version
