@@ -4,8 +4,8 @@
 const { spawnSync } = require('child_process')
 const path = require('path')
 
-// Locate run.py relative to this file (bin/openswarm.js -> ../run.py)
-const runScript = path.join(__dirname, '..', 'run.py')
+// Locate run_utils.py relative to this file (bin/openswarm.js -> ../run_utils.py)
+const runScript = path.join(__dirname, '..', 'run_utils.py')
 
 // Prefer python3, fall back to python (covers Windows where it's usually 'python')
 const candidates = process.platform === 'win32'

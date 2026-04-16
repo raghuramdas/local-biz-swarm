@@ -1,4 +1,4 @@
-from run import _bootstrap
+from run_utils import _bootstrap
 _bootstrap()
 
 import os
@@ -78,5 +78,5 @@ def create_agency(load_threads_callback=None):
     return agency
 
 if __name__ == "__main__":
-    from run import main
+    from run_utils import main
     main()

@@ -1,5 +1,5 @@
 {
-    "name": "@_vrsen/openswarm",
+    "name": "@vrsen/openswarm",
     "version": "0.1.2",
     "description": "An open-source multi-agent AI team built on Agency Swarm",
     "license": "MIT",
@@ -8,7 +8,7 @@
     },
     "files": [
         "bin/",
-        "run.py",
+        "run_utils.py",
         "onboard.py",
         "swarm.py",
         "config.py",

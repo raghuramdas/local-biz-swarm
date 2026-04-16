@@ -121,7 +121,7 @@ Tools gracefully degrade when keys are missing — you'll get clear instructions
 ```bash
 git clone https://github.com/VRSEN/openswarm.git
 cd openswarm
-python run.py
+python swarm.py
 ```
 
 **Docker deployment:**
