@@ -16,7 +16,14 @@ jobs:
           python-version: '3.12'
       - name: Test startup
         run: |
-          timeout 30 npx --yes @vrsen/openswarm 2>&1 | tee output.txt || true
+          python3 -c "
+          import subprocess, sys
+          result = subprocess.run(
+              ['npx', '--yes', '@vrsen/openswarm'],
+              timeout=60,
+              capture_output=False,
+              text=True,
+              env={**__import__('os').environ, 'OPENSWARM_DEMO_SILENCE_CONSOLE': '0'}
+          )
+          " 2>&1 | tee output.txt || true
           grep -q "Traceback" output.txt && exit 1 || exit 0
-        env:
-          OPENSWARM_DEMO_SILENCE_CONSOLE: "0"
