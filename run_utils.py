@@ -33,11 +33,11 @@ def _bootstrap() -> None:
     except ImportError:
         print("Installing dependencies, please wait…\n")
         if not shutil.which("uv"):
-            pip_cmd = [sys.executable, "-m", "pip", "install", "uv"]
-            if sys.platform != "win32":
-                pip_cmd.append("--break-system-packages")
-            subprocess.check_call(pip_cmd)
-        subprocess.check_call(["uv", "pip", "install", "--system", "--python", sys.executable, str(_repo)])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "uv"])
+        uv_cmd = ["uv", "pip", "install", "--system", "--python", sys.executable, str(_repo)]
+        if sys.platform != "win32":
+            uv_cmd.append("--break-system-packages")
+        subprocess.check_call(uv_cmd)
         print("\nDone.\n")
 
     # Ensure the Playwright browser binary for the installed playwright version
