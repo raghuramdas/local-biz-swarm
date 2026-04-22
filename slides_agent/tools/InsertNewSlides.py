@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Literal
 
 import os
+from dotenv import load_dotenv
 from agency_swarm import Agent, ModelSettings, Reasoning
 from agency_swarm.tools import BaseTool
 from openai import AsyncOpenAI
@@ -374,6 +375,7 @@ class InsertNewSlides(BaseTool):
 
     def run(self):
         """Insert blank placeholders and return a planning-oriented response."""
+        load_dotenv(override=True)
         project_dir = get_project_dir(self.project_name)
         project_dir.mkdir(parents=True, exist_ok=True)
 

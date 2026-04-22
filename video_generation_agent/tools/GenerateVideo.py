@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import re
+from dotenv import load_dotenv
 import mimetypes
 from pathlib import Path
 from urllib.parse import urlparse
@@ -166,6 +167,7 @@ class GenerateVideo(BaseTool):
 
     async def run(self) -> list:
         """Generate a marketing video using the chosen model."""
+        load_dotenv(override=True)
         if is_seedance_model(self.model):
             return await self._generate_with_seedance(self.model)
 

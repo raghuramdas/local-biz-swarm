@@ -4,6 +4,7 @@ from io import BytesIO
 from typing import Literal
 
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 from PIL import Image
 from pydantic import Field, field_validator, model_validator
@@ -85,6 +86,7 @@ class CombineImages(BaseTool):
         return self
 
     def run(self) -> list:
+        load_dotenv(override=True)
         images_dir = get_images_dir(self.product_name)
         reference_images = [resolve_image_reference(self.product_name, ref)[0] for ref in self.image_refs]
 

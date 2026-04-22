@@ -11,6 +11,7 @@ import base64
 import mimetypes
 import os
 import re
+from dotenv import load_dotenv
 import tempfile
 import threading
 from datetime import datetime, timezone
@@ -533,6 +534,7 @@ class ModifySlide(BaseTool):
     save_as_template_name: str | None = Field(default=None, description="Optional display name for saved template")
 
     async def run(self):
+        load_dotenv(override=True)
         project_dir = get_project_dir(self.project_name)
         if not project_dir.exists():
             return f"Project not found: {project_dir}"

@@ -3,6 +3,7 @@
 from typing import Literal
 
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import Field, field_validator, model_validator
 
@@ -75,6 +76,7 @@ class EditImages(BaseTool):
         return self
 
     def run(self) -> list:
+        load_dotenv(override=True)
         images_dir = get_images_dir(self.product_name)
         input_image, source = resolve_image_reference(self.product_name, self.input_image_ref)
 

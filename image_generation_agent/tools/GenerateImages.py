@@ -3,6 +3,7 @@
 from typing import Literal
 
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import Field, field_validator, model_validator
 
@@ -69,6 +70,7 @@ class GenerateImages(BaseTool):
         return self
 
     def run(self) -> list:
+        load_dotenv(override=True)
         images_dir = get_images_dir(self.product_name)
 
         if self.model.startswith("gemini-"):
