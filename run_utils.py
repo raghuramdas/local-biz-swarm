@@ -11,7 +11,7 @@ def _resolve_bin_name() -> str:
     machine = platform.machine().lower()
     arch = "arm64" if machine in ("arm64", "aarch64") else "x64"
     if sys.platform == "win32":
-        return "agentswarm.exe"
+        return f"agentswarm-windows-{arch}.exe"
     if sys.platform == "darwin":
         return f"agentswarm-darwin-{arch}"
     return f"agentswarm-linux-{arch}"
