@@ -27,35 +27,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Resolve packaged AgentSwarm version
-        id: packaged_agentswarm
-        shell: bash
-        run: |
-          version="$(node -p "require('./package.json').dependencies['@vrsen/agentswarm']")"
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Expected package.json to pin an exact @vrsen/agentswarm version, got: $version"
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Resolve OpenSwarm TUI source
-        id: openswarm_tui
-        shell: bash
-        run: |
-          repo="$(node -p "require('./package.json').openswarmTui?.buildRepo || ''")"
-          ref="$(node -p "require('./package.json').openswarmTui?.buildRef || ''")"
-          if [[ -z "$repo" || -z "$ref" ]]; then
-            echo "::error::package.json must define openswarmTui.buildRepo and openswarmTui.buildRef"
-            exit 1
-          fi
-          echo "repo=$repo" >> "$GITHUB_OUTPUT"
-          echo "ref=$ref" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@v4
         with:
-          repository: ${{ steps.openswarm_tui.outputs.repo }}
-          ref: ${{ steps.openswarm_tui.outputs.ref }}
+          repository: ArtemShatokhin/agentswarm-cli
+          ref: aaaa4557178e54ad88ec839345d411cf7cace76e
           path: agentswarm-cli
 
       - uses: oven-sh/setup-bun@v2

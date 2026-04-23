@@ -10,8 +10,6 @@ const path = require('path')
 
 const scriptPath = fs.realpathSync(__filename)
 const packageDir = path.dirname(path.dirname(scriptPath))
-const packageJson = readPackageJson()
-const openswarmTui = packageJson.openswarmTui && typeof packageJson.openswarmTui === 'object' ? packageJson.openswarmTui : {}
 
 function resolveAgentswarm(startDir) {
   let current = startDir
@@ -34,83 +32,39 @@ function getBinaryName() {
   return process.platform === 'win32' ? `agentswarm-windows-${os.arch() === 'arm64' ? 'arm64' : 'x64'}.exe` : `agentswarm-${process.platform === 'darwin' ? 'darwin' : 'linux'}-${os.arch() === 'arm64' ? 'arm64' : 'x64'}`
 }
 
-function readPackageJson() {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(packageDir, 'package.json'), 'utf8'))
-  } catch {
-    return {}
-  }
-}
-
-function readString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
-}
-
-function isDisabled(name) {
-  const value = readString(process.env[name])
-  if (!value) return false
-  return !['0', 'false', 'no', 'off'].includes(value.toLowerCase())
-}
-
-function sanitize(value) {
-  return String(value || 'default').replace(/[^a-zA-Z0-9._-]+/g, '_')
-}
-
-function getPackageVersion() {
-  return readString(packageJson.version) || 'unknown'
-}
-
-function getReleaseRepo() {
-  return readString(process.env.OPENSWARM_TUI_REPO) || readString(openswarmTui.releaseRepo) || 'VRSEN/OpenSwarm'
-}
-
-function getReleaseTag() {
-  return readString(process.env.OPENSWARM_TUI_TAG)
-}
-
 function getDownloadUrl(binaryName) {
-  const explicit = readString(process.env.OPENSWARM_TUI_URL)
+  const explicit = process.env.OPENSWARM_TUI_URL && process.env.OPENSWARM_TUI_URL.trim()
   if (explicit) return explicit
-  const repo = getReleaseRepo()
-  const tag = getReleaseTag()
-  if (tag) return `https://github.com/${repo}/releases/download/${tag}/${binaryName}`
-  return `https://github.com/${repo}/releases/latest/download/${binaryName}`
+  return `https://github.com/VRSEN/OpenSwarm/releases/latest/download/${binaryName}`
 }
 
-function getCacheRoot() {
-  const home = os.homedir()
-  if (process.platform === 'win32') {
-    return path.join(process.env.LOCALAPPDATA || path.join(home, 'AppData', 'Local'), 'OpenSwarm', 'tui')
-  }
-  if (process.platform === 'darwin') {
-    return path.join(home, 'Library', 'Caches', 'OpenSwarm', 'tui')
-  }
-  return path.join(process.env.XDG_CACHE_HOME || path.join(home, '.cache'), 'openswarm', 'tui')
-}
-
-function getCachedBinaryPath(binaryName) {
-  const explicit = readString(process.env.OPENSWARM_TUI_URL)
-  const sourceKey = explicit
-    ? `url_${sanitize(explicit)}`
-    : `repo_${sanitize(getReleaseRepo())}_tag_${sanitize(getReleaseTag() || 'latest')}`
-  return path.join(getCacheRoot(), getPackageVersion(), sourceKey, binaryName)
-}
-
-function resolveUsableBinary(binaryPath) {
+function resolveCustomBinary(binaryPath) {
   try {
     const stat = fs.statSync(binaryPath)
     if (!stat.isFile() || stat.size <= 0) return null
     if (process.platform !== 'win32' && (stat.mode & 0o111) === 0) {
       fs.chmodSync(binaryPath, 0o755)
     }
+    if (!validateBinary(binaryPath)) return null
     return binaryPath
   } catch {
     return null
   }
 }
 
-function resolveBundledBinary() {
-  return resolveUsableBinary(path.join(packageDir, getBinaryName()))
+function validateBinary(binaryPath) {
+  const result = spawnSync(binaryPath, ['--version'], {
+    env: {
+      ...process.env,
+      AGENTSWARM_LAUNCHER: '0',
+    },
+    encoding: 'utf8',
+    timeout: 15000,
+  })
+  if (result.error) return false
+  if (typeof result.status !== 'number' || result.status !== 0) return false
+  const output = `${result.stdout || ''}\n${result.stderr || ''}`
+  return /\d+\.\d+\.\d+/.test(output)
 }
 
 function request(url, redirects = 0) {
@@ -153,7 +107,6 @@ function request(url, redirects = 0) {
 }
 
 async function download(url, destination) {
-  fs.mkdirSync(path.dirname(destination), { recursive: true })
   const tempPath = `${destination}.part-${process.pid}-${Date.now()}`
   let finished = false
   try {
@@ -183,22 +136,25 @@ async function download(url, destination) {
 }
 
 async function ensureCustomBinary() {
-  const bundled = resolveBundledBinary()
-  if (bundled) return bundled
-  if (isDisabled('OPENSWARM_TUI_DISABLE_DOWNLOAD')) return null
-
   const binaryName = getBinaryName()
-  const cachedPath = getCachedBinaryPath(binaryName)
-  const cached = resolveUsableBinary(cachedPath)
-  if (cached) return cached
+  const binaryPath = path.join(packageDir, binaryName)
+  const existing = resolveCustomBinary(binaryPath)
+  if (existing) return existing
+
+  fs.rmSync(binaryPath, { force: true })
 
   const url = getDownloadUrl(binaryName)
   process.stdout.write('Downloading OpenSwarm TUI...\n')
   try {
-    await download(url, cachedPath)
-    return resolveUsableBinary(cachedPath)
+    await download(url, binaryPath)
+    const resolved = resolveCustomBinary(binaryPath)
+    if (!resolved) {
+      fs.rmSync(binaryPath, { force: true })
+      throw new Error('Downloaded custom TUI binary failed validation')
+    }
+    return resolved
   } catch (error) {
-    fs.rmSync(cachedPath, { force: true })
+    fs.rmSync(binaryPath, { force: true })
     process.stderr.write(
       `openswarm: custom OpenSwarm TUI unavailable (${error instanceof Error ? error.message : String(error)}); falling back to packaged AgentSwarm UI.\n`,
     )
@@ -222,6 +178,10 @@ async function main() {
     env,
   })
 
+  if (result.error) {
+    process.stderr.write(`openswarm: ${result.error.message}\n`)
+    process.exit(1)
+  }
   process.exit(result.status ?? 1)
 }
 

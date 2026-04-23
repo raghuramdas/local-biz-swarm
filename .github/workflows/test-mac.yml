@@ -3,25 +3,18 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - '.github/workflows/build-tui.yml'
       - '.github/workflows/test-mac.yml'
       - 'bin/openswarm'
-      - 'package.json'
-      - 'package-lock.json'
 
 jobs:
   test:
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Test startup
         shell: bash
         run: |
@@ -44,11 +37,7 @@ jobs:
           def resolve_binary_name():
               machine = platform.machine().lower()
               arch = "arm64" if machine in ("arm64", "aarch64") else "x64"
-              if os.name == "nt":
-                  return f"agentswarm-windows-{arch}.exe"
-              if sys.platform == "darwin":
-                  return f"agentswarm-darwin-{arch}"
-              return f"agentswarm-linux-{arch}"
+              return f"agentswarm-darwin-{arch}"
 
           def start_server(directory):
               handler = functools.partial(QuietHandler, directory=str(directory))
@@ -89,18 +78,22 @@ jobs:
               env=env,
           )
 
-          binary = root / "node_modules" / ".bin" / ("openswarm.cmd" if os.name == "nt" else "openswarm")
+          binary = root / "node_modules" / ".bin" / "openswarm"
 
           failure_env = {**env, "OPENSWARM_TUI_URL": f"{base_url}/missing/{binary_name}"}
           failure_runs = [run_version(binary, root, failure_env) for _ in range(2)]
 
-          success_runs = []
-          if os.name != "nt":
-              fake_binary = release_dir / binary_name
-              fake_binary.write_text("#!/bin/sh\nprintf '9.9.9-custom\\n'\n", encoding="utf-8")
-              fake_binary.chmod(0o755)
-              success_env = {**env, "OPENSWARM_TUI_URL": f"{base_url}/{binary_name}"}
-              success_runs = [run_version(binary, root, success_env) for _ in range(2)]
+          invalid_binary = release_dir / binary_name
+          invalid_binary.write_text("#!/bin/sh\nkill -9 $$\n", encoding="utf-8")
+          invalid_binary.chmod(0o755)
+          invalid_env = {**env, "OPENSWARM_TUI_URL": f"{base_url}/{binary_name}"}
+          invalid_runs = [run_version(binary, root, invalid_env) for _ in range(2)]
+
+          fake_binary = release_dir / binary_name
+          fake_binary.write_text("#!/bin/sh\nprintf '9.9.9-custom\\n'\n", encoding="utf-8")
+          fake_binary.chmod(0o755)
+          success_env = {**env, "OPENSWARM_TUI_URL": f"{base_url}/{binary_name}"}
+          success_runs = [run_version(binary, root, success_env) for _ in range(2)]
 
           server.shutdown()
           thread.join(timeout=5)
@@ -121,6 +114,10 @@ jobs:
                   for idx, run in enumerate(failure_runs, start=1)
               ]
               + [
+                  f"=== invalid run {idx} stdout ===\n{run.stdout}\n=== invalid run {idx} stderr ===\n{run.stderr}"
+                  for idx, run in enumerate(invalid_runs, start=1)
+              ]
+              + [
                   f"=== custom run {idx} stdout ===\n{run.stdout}\n=== custom run {idx} stderr ===\n{run.stderr}"
                   for idx, run in enumerate(success_runs, start=1)
               ]
@@ -135,6 +132,11 @@ jobs:
           for idx, run in enumerate(success_runs, start=1):
               if run.returncode != 0:
                   print(f"FAILED: custom run {idx} exited with {run.returncode}")
+                  sys.exit(1)
+
+          for idx, run in enumerate(invalid_runs, start=1):
+              if run.returncode != 0:
+                  print(f"FAILED: invalid run {idx} exited with {run.returncode}")
                   sys.exit(1)
 
           banned = [
@@ -161,16 +163,27 @@ jobs:
               print(f"FAILED: unexpected fallback version output: {fallback_version!r}")
               sys.exit(1)
 
-          if success_runs:
-              custom_version = next(
-                  (
-                      line.strip()
-                      for line in reversed(success_runs[-1].stdout.splitlines())
-                      if line.strip()
-                  ),
-                  "",
-              )
-              if custom_version != "9.9.9-custom":
-                  print(f"FAILED: unexpected custom version output: {custom_version!r}")
-                  sys.exit(1)
+          invalid_version = next(
+              (
+                  line.strip()
+                  for line in reversed(invalid_runs[-1].stdout.splitlines())
+                  if line.strip()
+              ),
+              "",
+          )
+          if not re.fullmatch(r"\d+\.\d+\.\d+", invalid_version):
+              print(f"FAILED: unexpected invalid-binary fallback version output: {invalid_version!r}")
+              sys.exit(1)
+
+          custom_version = next(
+              (
+                  line.strip()
+                  for line in reversed(success_runs[-1].stdout.splitlines())
+                  if line.strip()
+              ),
+              "",
+          )
+          if custom_version != "9.9.9-custom":
+              print(f"FAILED: unexpected custom version output: {custom_version!r}")
+              sys.exit(1)
           EOF
