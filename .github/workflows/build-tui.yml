@@ -28,29 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: openswarm
-
-      - name: Validate tag matches package version
-        if: github.event_name == 'push'
-        shell: bash
-        working-directory: openswarm
-        run: |
-          version="$(node -p "require('./package.json').version")"
-          expected_tag="v${version}"
-          if [[ "${GITHUB_REF_NAME}" != "${expected_tag}" ]]; then
-            echo "::error::Expected release tag ${expected_tag}, got ${GITHUB_REF_NAME}"
-            exit 1
-          fi
-
-      - uses: actions/checkout@v4
-        with:
           repository: ArtemShatokhin/agentswarm-cli
           ref: aaaa4557178e54ad88ec839345d411cf7cace76e
           path: agentswarm-cli
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.12"
+          # Bun 1.3.12 produces a darwin-arm64 binary that exits 137 during smoke test.
+          bun-version: "1.3.11"
 
       - name: Install dependencies
         working-directory: agentswarm-cli

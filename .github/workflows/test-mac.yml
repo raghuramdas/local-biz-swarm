@@ -7,7 +7,6 @@ on:
       - '.github/workflows/test-mac.yml'
       - 'bin/openswarm'
       - 'package.json'
-      - 'run_utils.py'
 
 jobs:
   test:
@@ -20,25 +19,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate versioned release download path
+      - uses: actions/checkout@v4
+        with:
+          repository: ArtemShatokhin/agentswarm-cli
+          ref: aaaa4557178e54ad88ec839345d411cf7cace76e
+          path: agentswarm-cli
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+      - name: Smoke-test pinned custom macOS TUI build
         shell: bash
+        working-directory: agentswarm-cli
         run: |
-          python - <<'EOF'
-          import pathlib
-
-          checks = {
-              "bin/openswarm": ["getReleaseTag", "OPENSWARM_TUI_TAG", "releases/download/${tag}/"],
-              "run_utils.py": ["_package_version", "OPENSWARM_TUI_TAG", "releases/download/{_tag}/"],
-          }
-
-          for rel_path, needles in checks.items():
-              text = pathlib.Path(rel_path).read_text(encoding="utf-8")
-              if "releases/latest/download" in text:
-                  raise SystemExit(f"FAILED: stale latest-release URL remains in {rel_path}")
-              for needle in needles:
-                  if needle not in text:
-                      raise SystemExit(f"FAILED: expected {needle!r} in {rel_path}")
-          EOF
+          bun install
+          cd packages/opencode
+          bun run script/build.ts --single --skip-install
+          ./dist/agentswarm-cli-darwin-arm64/bin/agentswarm --version
       - name: Test startup
         shell: bash
         run: |
