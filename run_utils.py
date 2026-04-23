@@ -17,6 +17,22 @@ def _resolve_bin_name() -> str:
     return f"agentswarm-linux-{arch}"
 
 
+def _read_text(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text or None
+
+
+def _package_version(repo: Path) -> str | None:
+    package_json = repo / "package.json"
+    try:
+        import json
+        return _read_text(json.loads(package_json.read_text(encoding="utf-8")).get("version"))
+    except Exception:
+        return None
+
+
 # ── Bootstrap: create venv + install deps automatically on first run ─────────
 # Only stdlib imports above. _bootstrap() is called explicitly — either from
 # swarm.py (via `from run import _bootstrap; _bootstrap()`) or from the
@@ -116,9 +132,21 @@ def _bootstrap() -> None:
     _bin_path = _repo / _bin_name
     if not _bin_path.exists():
         import urllib.request
-        _bin_url = f"https://github.com/VRSEN/OpenSwarm/releases/latest/download/{_bin_name}"
+        _tag = _read_text(os.getenv("OPENSWARM_TUI_TAG")) or (
+            f"v{_package_version(_repo)}" if _package_version(_repo) else None
+        )
+        _repo_name = _read_text(os.getenv("OPENSWARM_TUI_REPO")) or "VRSEN/OpenSwarm"
+        _bin_url = _read_text(os.getenv("OPENSWARM_TUI_URL"))
+        if not _bin_url:
+            if not _tag:
+                print("Warning: Could not determine OpenSwarm release tag. The terminal UI will use the default.\n")
+                _bin_url = None
+            else:
+                _bin_url = f"https://github.com/{_repo_name}/releases/download/{_tag}/{_bin_name}"
         print("Downloading OpenSwarm TUI, please wait…\n")
         try:
+            if not _bin_url:
+                raise RuntimeError("missing release tag")
             urllib.request.urlretrieve(_bin_url, str(_bin_path))
             if sys.platform != "win32":
                 _bin_path.chmod(0o755)
