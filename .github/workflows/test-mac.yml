@@ -6,6 +6,7 @@ on:
       - '.github/workflows/build-tui.yml'
       - '.github/workflows/test-mac.yml'
       - 'bin/openswarm'
+      - 'package.json'
 
 jobs:
   test:
