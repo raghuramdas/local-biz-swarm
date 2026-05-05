@@ -4,9 +4,11 @@ from agents import set_tracing_disabled, set_tracing_export_api_key
 from patches.patch_agency_swarm_dual_comms import apply_dual_comms_patch
 from patches.patch_file_attachment_refs import apply_file_attachment_reference_patch
 from patches.patch_ipython_interpreter_composio import apply_ipython_composio_context_patch
+from patches.patch_utf8_file_reads import apply_utf8_file_read_patch
 
 load_dotenv()
 
+apply_utf8_file_read_patch()
 apply_dual_comms_patch()
 apply_file_attachment_reference_patch()
 apply_ipython_composio_context_patch()

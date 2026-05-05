@@ -37,6 +37,8 @@ def _ensure_node_playwright_browsers(repo: Path) -> None:
 def _uv_env() -> dict[str, str]:
     env = os.environ.copy()
     env.setdefault("UV_LINK_MODE", "copy")
+    env.setdefault("PYTHONUTF8", "1")
+    env.setdefault("PYTHONIOENCODING", "utf-8")
     return env
 
 
@@ -232,6 +234,9 @@ def _configure_demo_console() -> None:
 def main() -> None:
     from dotenv import load_dotenv
     load_dotenv()
+
+    os.environ.setdefault("PYTHONUTF8", "1")
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 
     if not os.getenv("AGENTSWARM_BIN"):
         _repo = Path(__file__).resolve().parent

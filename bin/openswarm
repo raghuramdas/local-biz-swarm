@@ -170,7 +170,12 @@ if (!agentswarmBin) {
 
 async function main() {
   const customBinary = await ensureCustomBinary()
-  const env = { ...process.env, AGENTSWARM_LAUNCHER: process.env.AGENTSWARM_LAUNCHER || '1' }
+  const env = {
+    ...process.env,
+    AGENTSWARM_LAUNCHER: process.env.AGENTSWARM_LAUNCHER || '1',
+    PYTHONUTF8: process.env.PYTHONUTF8 || '1',
+    PYTHONIOENCODING: process.env.PYTHONIOENCODING || 'utf-8',
+  }
   if (customBinary) env.AGENTSWARM_BIN_PATH = customBinary
 
   const result = spawnSync(process.execPath, [agentswarmBin, ...process.argv.slice(2)], {
