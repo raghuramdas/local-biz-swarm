@@ -8,6 +8,7 @@ from openai import OpenAI
 from pydantic import Field, field_validator, model_validator
 
 from agency_swarm import BaseTool
+from shared_tools.model_availability import image_model_availability_message
 from shared_tools.openai_client_utils import get_openai_client
 
 from .utils.image_io import (
@@ -93,7 +94,12 @@ class EditImages(BaseTool):
 
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY is not set. Add it to your .env to use image editing.")
+            raise ValueError(
+                image_model_availability_message(
+                    self,
+                    failed_requirement="GOOGLE_API_KEY is not set. Gemini image editing requires the Google add-on key.",
+                )
+            )
 
         client = genai.Client(api_key=api_key)
         results: list[dict] = []
@@ -151,9 +157,12 @@ class EditImages(BaseTool):
             client = get_openai_client(tool=self)
             if not str(client.base_url).startswith("https://api.openai.com"):
                 raise ValueError(
-                    "User has used browser authentication and is authenticated through Codex. "
-                    "Image editing is not yet supported with Codex api. "
-                    "Please ask user to use /auth again to add add-ons or switch to API key authentication."
+                    image_model_availability_message(
+                        self,
+                        failed_requirement=(
+                            "The current auth is Codex/browser auth. gpt-image-1.5 editing is not supported through the Codex API."
+                        ),
+                    )
                 )
             response = client.images.edit(
                 model=self.model,

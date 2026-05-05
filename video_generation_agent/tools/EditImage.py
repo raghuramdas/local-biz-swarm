@@ -9,6 +9,7 @@ from google import genai
 from pydantic import Field, field_validator
 
 from agency_swarm import BaseTool
+from shared_tools.model_availability import image_model_availability_message
 
 from .utils.image_utils import (
     get_images_dir,
@@ -87,7 +88,12 @@ class EditImage(BaseTool):
         load_dotenv(override=True)
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY is not set. Add it to your .env to use image editing.")
+            raise ValueError(
+                image_model_availability_message(
+                    self,
+                    failed_requirement="GOOGLE_API_KEY is not set. Gemini image editing requires the Google add-on key.",
+                )
+            )
 
         client = genai.Client(api_key=api_key)
         images_dir = get_images_dir(self.product_name)

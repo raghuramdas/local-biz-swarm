@@ -15,6 +15,7 @@ from google.genai import types
 from PIL import Image
 
 from agency_swarm import BaseTool, ToolOutputText
+from shared_tools.model_availability import video_model_availability_message
 
 from .utils.video_utils import (
     create_image_output,
@@ -171,7 +172,12 @@ class EditVideoContent(BaseTool):
 
         api_key = os.getenv("FAL_KEY")
         if not api_key:
-            raise ValueError("FAL_KEY is not set. Add it to your .env to use video editing.")
+            raise ValueError(
+                video_model_availability_message(
+                    self,
+                    failed_requirement="FAL_KEY is not set. fal.ai video editing requires the fal.ai add-on key.",
+                )
+            )
         fal = fal_client.SyncClient(key=api_key)
 
         endpoint = self._resolve_endpoint(self.mode.action)

@@ -19,6 +19,7 @@ from PIL import Image as PILImage
 from io import BytesIO
 
 from agency_swarm import BaseTool, ToolOutputText
+from shared_tools.model_availability import video_model_availability_message
 from shared_tools.openai_client_utils import get_openai_client
 
 from .utils.video_utils import (
@@ -185,9 +186,12 @@ class GenerateVideo(BaseTool):
         client = get_openai_client(tool=self)
         if not str(client.base_url).startswith("https://api.openai.com"):
             raise ValueError(
-                "User has used browser authentication and is authenticated through Codex. "
-                "Video generation is not yet supported with Codex api. "
-                "Please ask user to use /auth again to add add-ons or switch to API key authentication."
+                video_model_availability_message(
+                    self,
+                    failed_requirement=(
+                        "The current auth is Codex/browser auth. Sora video generation is not supported through the Codex API."
+                    ),
+                )
             )
         reference_file = None
         
@@ -453,7 +457,12 @@ class GenerateVideo(BaseTool):
         """Generate video using ByteDance Seedance 1.5 Pro via fal.ai."""
         api_key = os.getenv("FAL_KEY")
         if not api_key:
-            raise ValueError("FAL_KEY is not set. Add it to your .env to use video generation.")
+            raise ValueError(
+                video_model_availability_message(
+                    self,
+                    failed_requirement="FAL_KEY is not set. Seedance video generation requires the fal.ai add-on key.",
+                )
+            )
         fal = fal_client.SyncClient(key=api_key)
 
         duration = str(self.seconds)

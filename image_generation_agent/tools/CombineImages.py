@@ -10,6 +10,7 @@ from PIL import Image
 from pydantic import Field, field_validator, model_validator
 
 from agency_swarm import BaseTool
+from shared_tools.model_availability import image_model_availability_message
 from shared_tools.openai_client_utils import get_openai_client
 
 from .utils.image_io import (
@@ -103,7 +104,12 @@ class CombineImages(BaseTool):
 
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY is not set. Add it to your .env to use image composition.")
+            raise ValueError(
+                image_model_availability_message(
+                    self,
+                    failed_requirement="GOOGLE_API_KEY is not set. Gemini image composition requires the Google add-on key.",
+                )
+            )
 
         client = genai.Client(api_key=api_key)
         results: list[dict] = []
@@ -160,6 +166,15 @@ class CombineImages(BaseTool):
 
         try:
             client = get_openai_client(tool=self)
+            if not str(client.base_url).startswith("https://api.openai.com"):
+                raise ValueError(
+                    image_model_availability_message(
+                        self,
+                        failed_requirement=(
+                            "The current auth is Codex/browser auth. gpt-image-1.5 composition is not supported through the Codex API."
+                        ),
+                    )
+                )
             response = client.images.edit(
                 model=self.model,
                 image=input_buffers,

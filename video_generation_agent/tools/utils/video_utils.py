@@ -18,6 +18,7 @@ from PIL import Image
 from google import genai
 
 from agency_swarm import ToolOutputText, ToolOutputImage
+from shared_tools.model_availability import video_model_availability_message
 
 from .image_utils import (
     load_image_by_name,
@@ -95,7 +96,11 @@ def get_gemini_client():
     """Instantiate a Gemini client from the environment."""
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
-        raise ValueError("GOOGLE_API_KEY is not set. Add it to your .env to use video generation.")
+        raise ValueError(
+            video_model_availability_message(
+                failed_requirement="GOOGLE_API_KEY is not set. Veo video generation requires the Google add-on key."
+            )
+        )
     return genai.Client(api_key=api_key)
 
 

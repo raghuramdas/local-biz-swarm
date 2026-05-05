@@ -12,6 +12,7 @@ from PIL import Image
 from pydantic import Field, field_validator
 
 from agency_swarm import BaseTool
+from shared_tools.model_availability import image_model_availability_message
 
 from .utils.image_io import (
     find_image_path_from_name,
@@ -54,7 +55,12 @@ class RemoveBackground(BaseTool):
         load_dotenv(override=True)
         api_key = os.getenv("FAL_KEY")
         if not api_key:
-            raise ValueError("FAL_KEY is not set. Add it to your .env to use background removal.")
+            raise ValueError(
+                image_model_availability_message(
+                    self,
+                    failed_requirement="FAL_KEY is not set. Background removal requires the fal.ai add-on key.",
+                )
+            )
         fal = fal_client.SyncClient(key=api_key)
 
         images_dir = get_images_dir(self.product_name)
