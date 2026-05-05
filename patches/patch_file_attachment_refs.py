@@ -2,6 +2,8 @@
 Patch: inject attachment file references into the user message.
 """
 
+import asyncio
+
 _PATCH_APPLIED = False
 
 
@@ -53,7 +55,11 @@ def _patch_endpoint_handler_factories() -> None:
                 note = _build_attachment_note(request.file_urls)
                 existing = getattr(request, "additional_instructions", None) or ""
                 request = request.model_copy(update={"additional_instructions": (existing + "\n\n" + note).strip()})
-            return await original_handler(http_request, request, token)
+            response = await original_handler(http_request, request, token)
+            body_iterator = getattr(response, "body_iterator", None)
+            if body_iterator is not None:
+                response.body_iterator = _with_sse_heartbeats(body_iterator)
+            return response
 
         return handler
 
@@ -72,3 +78,38 @@ def _patch_endpoint_handler_factories() -> None:
     eh.make_response_endpoint = patched_make_response_endpoint
     eh.make_stream_endpoint = patched_make_stream_endpoint
     eh.make_agui_chat_endpoint = patched_make_agui_endpoint
+
+
+async def _with_sse_heartbeats(body_iterator, interval_seconds: float = 10.0):
+    queue: asyncio.Queue = asyncio.Queue()
+    sentinel = object()
+
+    async def produce() -> None:
+        try:
+            async for chunk in body_iterator:
+                await queue.put(chunk)
+        except BaseException as exc:
+            await queue.put(exc)
+        finally:
+            await queue.put(sentinel)
+
+    producer = asyncio.create_task(produce())
+    try:
+        while True:
+            try:
+                item = await asyncio.wait_for(queue.get(), timeout=interval_seconds)
+            except TimeoutError:
+                yield b": openswarm heartbeat\n\n"
+                continue
+            if item is sentinel:
+                break
+            if isinstance(item, BaseException):
+                raise item
+            yield item
+    finally:
+        if not producer.done():
+            producer.cancel()
+            try:
+                await producer
+            except asyncio.CancelledError:
+                pass
