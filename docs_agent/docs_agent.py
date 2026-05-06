@@ -27,14 +27,25 @@ def _build_instructions() -> str:
     return (
         f"{body}\n\n"
         f"Current date/time (UTC): {now_utc}\n\n"
-        f"Existing project folders (do NOT reuse these names for a new document project):\n{projects_block}"
+        f"Existing project folders (do NOT reuse these names for a new outreach run):\n{projects_block}"
     )
 
 
 def create_docs_agent() -> Agent:
+    """Outreach Strategist — Step 2 of the website-selling pipeline.
+
+    Folder is named `docs_agent` for upstream-import compatibility. The agent
+    is rebranded to "Outreach Strategist" and produces the article's exact
+    three-piece pack per lead (50-word diagnosis, 100-word site brief,
+    <70-word cold message), then exports the deliverables as CSV/MD/PDF.
+    """
     return Agent(
-        name="Docs Agent",
-        description="Professional Document Engineer specializing in creating, editing, and converting files to multiple formats (PDF, Markdown, TXT, DOCX).",
+        name="Outreach Strategist",
+        description=(
+            "Generates the per-lead 3-piece outreach pack (diagnosis, site brief, cold message). "
+            "Reads the Lead Hunter CSV, runs `GenerateOutreachPack` per row, and exports "
+            "deliverables as CSV/Markdown/PDF for the Outreach Sender."
+        ),
         instructions=_build_instructions(),
         files_folder="./files",
         tools_folder="./tools",
@@ -45,10 +56,10 @@ def create_docs_agent() -> Agent:
         ),
         tools=[WebSearchTool(), IPythonInterpreter, CopyFile],
         conversation_starters=[
-            "Draft Week 34 client status report with a table and export as PDF.",
-            "Create a one-page AI chatbot proposal and export as DOCX.",
-            "Create a product launch executive memo in HTML.",
-            "Write an onboarding SOP for a remote operations coordinator and deliver as Markdown.",
+            "Run the 3-piece outreach pack for every lead in this CSV.",
+            "Draft me a single cold message for [business name] in [city].",
+            "Audit my last batch of cold messages — flag any that sound AI-generated.",
+            "Export the diagnosis + site brief deck as a single PDF I can read on my phone.",
         ],
     )
 

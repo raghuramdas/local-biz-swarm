@@ -1,130 +1,75 @@
-# OpenSwarm — Customization Guide
+# LocalBizSwarm — Customization Guide
 
-This file gives coding agents (Cursor, Claude Code, Codex, etc.) everything they need to understand and customize this swarm. Read it before making any changes.
-
----
-
-## What is OpenSwarm?
-
-OpenSwarm is a multi-agent AI team you can fork and reshape into any kind of swarm you need — SEO, sales, research, finance, customer support, or anything else. Each agent is a specialist. They collaborate through a shared orchestrator.
+This file is for coding agents (Cursor, Claude Code, Codex, etc.) hacking on this fork. Read it before making any structural change.
 
 ---
 
-## Folder Structure
+## What is LocalBizSwarm?
+
+LocalBizSwarm is a fork of [VRSEN/OpenSwarm](https://github.com/VRSEN/OpenSwarm) reshaped into a single-purpose pipeline: **selling websites to local businesses**. It implements the workflow described in [the article](https://x.com/timbidefi/status/2051219084092506144):
 
 ```
-swarm.py                  ← main config: imports all agents, defines how they connect
-shared_instructions.md    ← context shared across every agent
-run.py                    ← CLI entry point (terminal demo)
-server.py                 ← API entry point (FastAPI server)
-
-orchestrator/
-  orchestrator.py         ← agent definition
-  instructions.md         ← system prompt
-
-data_analyst_agent/
-  data_analyst_agent.py
-  instructions.md
-  tools/                  ← custom tools for this agent
-
-docs_agent/
-  docs_agent.py
-  instructions.md
-  tools/
-
-slides_agent/
-  slides_agent.py
-  instructions.md
-  tools/
-
-image_generation_agent/
-  image_generation_agent.py
-  instructions.md
-  tools/
-
-video_generation_agent/
-  video_generation_agent.py
-  instructions.md
-  tools/
-
-deep_research/
-  deep_research.py
-  instructions.md
-  tools/
-
-virtual_assistant/
-  virtual_assistant.py
-  instructions.md
-  tools/
-
-shared_tools/             ← tools available to all agents (Composio integrations, etc.)
+Lead Hunter ─► Outreach Strategist ─► Mockup Builder ─► Demo Video Agent ─► Outreach Sender
+                                                                                  │
+                                                                                  ▼
+                                                                          Pipeline Analyst
 ```
 
----
-
-## How Agents Connect (`swarm.py`)
-
-`swarm.py` is the only file you need to edit when adding, removing, or rewiring agents. It:
-
-1. Imports a `create_*` factory function from each agent folder
-2. Instantiates all agents
-3. Defines communication flows — who can talk to whom
-
-The default pattern is **orchestrator-to-all**: the orchestrator can send messages to every specialist, and all agents can hand off to each other.
+Each stage corresponds to one Agency Swarm specialist. The Pipeline Orchestrator never executes work — it only routes.
 
 ---
 
-## How to Customize
+## Folder ⇄ Agent map
 
-To build your own swarm from this repo:
+The folder names are kept from upstream OpenSwarm so all upstream imports keep working. The agent name (and its instructions/tools) is what changed.
 
-1. **Fork and rename** the repo (e.g., `seo-swarm`)
-2. **Decide which agents to keep, rename, or replace**
-   - Rename the folder and its files to match the new agent's purpose
-   - Update `instructions.md` with the new system prompt
-   - Update `swarm.py` to import and register the renamed agent
-3. **Add or remove tools** inside each agent's `tools/` folder
-4. **Update `shared_instructions.md`** with any context all agents should share
-5. **Run** with `python run.py`
+| Folder | Agent name | Stage | Article tool it replaces |
+|---|---|---|---|
+| `orchestrator/` | Pipeline Orchestrator | — | (router only) |
+| `deep_research/` | **Lead Hunter** | 1 — Discovery | Google Maps |
+| `docs_agent/` | **Outreach Strategist** | 2 — Copy | Claude prompt batch |
+| `slides_agent/` | **Mockup Builder** | 3 — Landing page | Lovable |
+| `image_generation_agent/` | **Mockup Imagery Agent** | 3 (support) | Image gen |
+| `video_generation_agent/` | **Demo Video Agent** | 4 — Walkthrough | Higgsfield |
+| `virtual_assistant/` | **Outreach Sender** | 5 — Send + follow up | Gmail / SMS / DMs (Composio) |
+| `data_analyst_agent/` | **Pipeline Analyst** | Reporting | (funnel math) |
 
-### Example prompt to give your coding agent
-
-> "Turn this into an SEO optimization swarm. The Research Agent becomes an SEO Keyword Planner, the Docs Agent becomes a Blog Post Writer, the Data Analyst becomes an SEO Analytics Agent (Google Search Console + GA4), and the General Agent handles technical SEO like schema markup and site audits. Keep the orchestrator and shared tools as-is."
-
-The coding agent will read this file, understand the structure, and make the right changes automatically.
+Communication topology in `swarm.py` is **orchestrator-to-all** + **handoffs between any two specialists**.
 
 ---
 
-## Current Agents
+## New tools added in this fork
 
-| Agent | Purpose |
-|---|---|
-| `orchestrator` | Routes tasks to the right specialist |
-| `virtual_assistant` | Email, calendar, Slack, file management |
-| `deep_research` | Web research and synthesis |
-| `data_analyst_agent` | Data analysis, visualization, statistical modeling |
-| `docs_agent` | Document creation and editing |
-| `slides_agent` | PowerPoint / HTML slide generation |
-| `image_generation_agent` | AI image generation and editing |
-| `video_generation_agent` | AI video generation and editing |
+Two focused tools were added (everything else is inherited from upstream OpenSwarm):
+
+- `deep_research/tools/GoogleMapsSearch.py` — calls Google Places API (New) Text Search, skips the dominant top results, and filters to the article's "sweet spot" pattern (low reviews, decent rating, missing or weak website). Requires `GOOGLE_PLACES_API_KEY`.
+- `docs_agent/tools/GenerateOutreachPack.py` — produces the article's exact 3-piece pack per lead (50-word diagnosis, 100-word site brief, <70-word cold message). Uses `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` (`OUTREACH_MODEL` to override).
+
+Everything else (HTML→DOCX/PDF for the strategist, slide-authoring for the mockup, Veo/Sora/Seedance for video, Composio Gmail/Twilio/etc. for sending) is the upstream toolset, just rebranded for the pipeline.
 
 ---
 
-## Key Conventions
+## How to customize further
 
-- Each agent folder has one `<name>.py` file and one `instructions.md`
-- `instructions.md` is the agent's system prompt — edit it to change behavior
-- Tools live in `tools/` and are auto-loaded by the agent definition
-- `shared_tools/` contains Composio-powered integrations (Gmail, Slack, GitHub, etc.) available to all agents
-- Models are configured via `DEFAULT_MODEL` in `.env` — never hardcoded
+You can keep extending or pivoting this fork. The two most common moves:
 
-Before proceeding with agent creation, please read the following instructions carefully:
+1. **Swap a stage to a real first-party API.** For example, integrate Lovable's API in `slides_agent/tools/` to host a real preview URL instead of a local PPTX export. Drop the new tool into the agent's `tools/` folder — it's auto-loaded.
+2. **Add a CRM stage.** Drop in a `pipeline_crm/` folder with a tool that writes leads to HubSpot/Pipedrive via Composio, then add the agent to `swarm.py` and `shared_instructions.md`.
 
-- `.cursor/rules/agency-swarm-workflow.mdc` - your primary guide for creating agents and agencies
+If you want to revert to the generic OpenSwarm base, the upstream remote is `git@github.com:VRSEN/OpenSwarm.git`. Cherry-pick from `main` of that repo.
 
-The following files can be read on demand, depending on the task at hand:
+---
 
-- `.cursor/commands/add-mcp.md` - how to add MCP servers to an agent
-- `.cursor/commands/mcp-code-exec.md` - how to convert an MCP server into the Code Execution Pattern (progressive tool disclosure, 98% token reduction)
-- `.cursor/commands/write-instructions.md` - how to write effective instructions for AI agents
-- `.cursor/commands/create-prd.md` - how to create a PRD for an agent (use for complex multi agent systems)
+## Key conventions
+
+- Each agent folder has one `<name>.py` factory and one `instructions.md` (the system prompt).
+- Tools live in `tools/` and are auto-loaded by the agent's `tools_folder=...` definition.
+- `shared_tools/` contains Composio-powered integrations (Gmail, Slack, GitHub, etc.) available to all agents.
+- Models are configured via `DEFAULT_MODEL` in `.env` — never hardcoded. The Outreach Strategist's pack-generation can be overridden via `OUTREACH_MODEL`.
+- Never reference Claude / Lovable / Higgsfield / "AI" in any visible mockup or outreach copy.
+
+Before structural changes, please read:
+
+- `.cursor/rules/agency-swarm-workflow.mdc` — primary guide for agents and agencies
+- `.cursor/commands/add-mcp.md` — adding MCP servers
+- `.cursor/commands/write-instructions.md` — how to write effective instructions for AI agents

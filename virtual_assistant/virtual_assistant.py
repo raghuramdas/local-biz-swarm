@@ -17,9 +17,22 @@ IPythonInterpreter.__name__ = "ProgrammaticToolCalling"
 
 
 def create_virtual_assistant() -> Agent:
+    """Outreach Sender — Step 5 of the website-selling pipeline.
+
+    Folder is named `virtual_assistant` for upstream-import compatibility.
+    The agent is rebranded to "Outreach Sender" and tuned to dispatch the
+    Outreach Strategist's pack via Composio (Gmail/Outlook for email,
+    Twilio for SMS, Instagram/LinkedIn DMs, Slack for internal handoff)
+    with article-grade subject lines and follow-up scheduling.
+    """
     return Agent(
-        name="General Agent",
-        description="Your virtual assistant that connects to 10000+ external systems.",
+        name="Outreach Sender",
+        description=(
+            "Sends the cold outreach pack (cold message + mockup link + walkthrough video) "
+            "via the right channel per niche: email default, SMS for trades, Instagram for "
+            "visual businesses, LinkedIn for B2B, phone for older demographics. Schedules "
+            "two follow-ups per the article (4-day, then 7-day from a different angle)."
+        ),
         instructions="./instructions.md",
         files_folder="./files",
         tools_folder="./tools",
@@ -39,10 +52,10 @@ def create_virtual_assistant() -> Agent:
             SearchTools,
         ],
         conversation_starters=[
-            "Send a summary of my unread emails to Slack.",
-            "Schedule a meeting with my team for next Monday.",
-            "What external systems do I have connected?",
-            "Draft and send a follow-up email to my last meeting attendees.",
+            "Send the latest outreach batch via Gmail; attach each lead's walkthrough video.",
+            "Schedule a 4-day follow-up for everyone in this batch who hasn't replied.",
+            "Switch the channel for the trades leads from email to SMS.",
+            "Show me which connected systems I can use to send (Composio).",
         ],
     )
 

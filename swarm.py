@@ -21,6 +21,20 @@ else:
 
 
 def create_agency(load_threads_callback=None):
+    """Build the LocalBizSwarm — the website-selling-to-local-businesses pipeline.
+
+    Folder names are kept from upstream OpenSwarm (preserves all imports).
+    Each create_* factory has been re-skinned for its role in this pipeline:
+
+      deep_research            -> Lead Hunter
+      docs_agent               -> Outreach Strategist
+      slides_agent             -> Mockup Builder
+      video_generation_agent   -> Demo Video Agent
+      image_generation_agent   -> Mockup Imagery Agent
+      virtual_assistant        -> Outreach Sender
+      data_analyst_agent       -> Pipeline Analyst
+      orchestrator             -> Pipeline Orchestrator
+    """
     from agency_swarm import Agency
     from agency_swarm.tools import Handoff, SendMessage
 
@@ -33,30 +47,30 @@ def create_agency(load_threads_callback=None):
     from video_generation_agent import create_video_generation_agent
     from image_generation_agent import create_image_generation_agent
 
-    orchestrator = create_orchestrator()
-    virtual_assistant = create_virtual_assistant()
-    deep_research = create_deep_research()
-    data_analyst = create_data_analyst()
-    slides_agent = create_slides_agent()
-    docs_agent = create_docs_agent()
-    video_generation_agent = create_video_generation_agent()
-    image_generation_agent = create_image_generation_agent()
+    pipeline_orchestrator = create_orchestrator()
+    outreach_sender = create_virtual_assistant()
+    lead_hunter = create_deep_research()
+    pipeline_analyst = create_data_analyst()
+    mockup_builder = create_slides_agent()
+    outreach_strategist = create_docs_agent()
+    demo_video_agent = create_video_generation_agent()
+    mockup_imagery_agent = create_image_generation_agent()
 
     all_agents = [
-        orchestrator,
-        virtual_assistant,
-        slides_agent,
-        deep_research,
-        data_analyst,
-        docs_agent,
-        video_generation_agent,
-        image_generation_agent,
+        pipeline_orchestrator,
+        lead_hunter,
+        outreach_strategist,
+        mockup_builder,
+        demo_video_agent,
+        mockup_imagery_agent,
+        outreach_sender,
+        pipeline_analyst,
     ]
 
     send_message_flows = [
-        (orchestrator, specialist, SendMessage)
+        (pipeline_orchestrator, specialist, SendMessage)
         for specialist in all_agents
-        if specialist is not orchestrator
+        if specialist is not pipeline_orchestrator
     ]
 
     handoff_flows = [
@@ -69,12 +83,13 @@ def create_agency(load_threads_callback=None):
     agency = Agency(
         *all_agents,
         communication_flows=send_message_flows + handoff_flows,
-        name="OpenSwarm",
+        name="LocalBizSwarm",
         shared_instructions="shared_instructions.md",
         load_threads_callback=load_threads_callback,
     )
 
     return agency
+
 
 if __name__ == "__main__":
     agency = create_agency()

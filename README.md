@@ -1,162 +1,106 @@
 <div align="center">
 
-# 🚀 OpenSwarm
+# LocalBizSwarm
 
-![OpenSwarm](assets/new-framework.jpg)
+**A multi-agent system that sells websites to local businesses, end-to-end.**
 
 </div>
 
-**The fully open-source multi-agent system that does everything Claude Code can't.**
+A fork of [VRSEN/OpenSwarm](https://github.com/VRSEN/OpenSwarm) reshaped into a single-purpose pipeline that implements [the Google-Maps + Claude + Lovable + Higgsfield workflow](https://x.com/timbidefi/status/2051219084092506144): find local businesses with weak websites, write per-lead diagnoses + briefs + cold messages, build branded landing-page mockups, render 10-second cinematic walkthrough videos, and dispatch the outreach with scheduled follow-ups. Then track the funnel.
 
-Create polished slide decks, research reports, data visualizations, documents, images, and videos — all from a single prompt in your terminal. No platform, no UI, no setup hassles.
-
-✨ **One prompt → Complete deliverables**
-🎯 **8 specialized agents working together**
-⚡ **Install in 30 seconds, running in 60**
-🔧 **100% customizable and forkable**
-
-Built on [Agency Swarm](https://github.com/VRSEN/agency-swarm) — the framework powering real AI agencies.
-
----
-
-> 💼 **Investor or looking to integrate AI agents into your SaaS?**
-> We're the team behind OpenSwarm and Agency Swarm, building the future of multi-agent systems.
-> **[Partner with us →](https://vrsen-ai.notion.site/fee2d391a8d74b24baa04a0b648af83c?pvs=105)**
-
----
-
-## 💡 What Makes This Different?
-
-Instead of one agent trying to do everything poorly, you get **specialists coordinated by an orchestrator**.
-
-### 🎯 Real Examples
-
-Paste these into your terminal and watch magic happen:
-
-- **"Create a complete investor pitch for OpenSwarm"** → Full deck + executive summary + market research
-- **"Research my top 5 competitors and write 3 SEO-optimized blog posts"** → Competitive analysis + keyword research + publish-ready content
-- **"Analyze this data and create a quarterly report with charts"** → Data insights + visualizations + formatted document
-- **"Generate a product launch video with animations"** → Professional video with graphics and transitions
-- **"Build me a marketing campaign for Q2"** → Strategy doc + creative assets + implementation timeline
-
-Connect to 10,000+ external services (Gmail, Slack, GitHub, HubSpot) via Composio for even more power.
-
----
-
-## 🤖 Meet Your AI Team
-
-| Agent                      | What it does                                                                                                                                                                                 |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Orchestrator**           | Routes every user request to the right specialist(s). Never answers directly — pure coordination.                                                                                            |
-| **Virtual Assistant**      | Handles everyday tasks: writing, scheduling, messaging, task management. Gains 10,000+ external integrations via [Composio](https://composio.dev) (Gmail, Slack, GitHub, HubSpot, and more). |
-| **Deep Research**          | Conducts comprehensive, evidence-based web research with citations and balanced analysis.                                                                                                    |
-| **Data Analyst**           | Analyses structured data, builds charts, runs statistical models — all inside an isolated IPython kernel.                                                                                    |
-| **Slides Agent**           | Generates complete, visually polished HTML slide decks, then exports them to PPTX.                                                                                                           |
-| **Docs Agent**             | Creates formatted Word documents and PDFs from outlines or raw content.                                                                                                                      |
-| **Image Generation Agent** | Generates and edits images using Gemini 2.5 Flash Image / Gemini 3 Pro Image and fal.ai.                                                                                                     |
-| **Video Generation Agent** | Produces videos via Sora (OpenAI), Veo (Google), and Seedance (fal.ai); also edits and combines clips.                                                                                       |
-
----
-
-## 📦 Get Started in 30 Seconds
-
-**For most users (recommended):**
-
-```bash
-npm install -g @vrsen/openswarm
-openswarm
+```
+Lead Hunter ─► Outreach Strategist ─► Mockup Builder ─► Demo Video Agent ─► Outreach Sender
+                                                                                  │
+                                                                                  ▼
+                                                                          Pipeline Analyst
 ```
 
-That's it! The setup wizard handles everything: authentication, dependencies, and configuration.
+Built on [Agency Swarm](https://github.com/VRSEN/agency-swarm).
 
-**Requirements:** Node.js 20+ (Python 3.10+ auto-installed)
+---
 
-## 🔧 Build Your Own Swarm
+## What you can ask the swarm
 
-Fork this repo and create your own specialized AI team in minutes:
+Drop one of these into the terminal once you've got the env set up:
+
+- *"Find 30 cosmetic dentists in West Austin with weak websites and run the full outreach pipeline."*
+- *"Build mockups + 10-second walkthrough videos for my top 5 leads in the Phoenix roofers list."*
+- *"Draft per-lead diagnosis, site brief, and cold message for these 25 plumbers."*
+- *"Send the latest outreach batch via Gmail; attach each lead's walkthrough video."*
+- *"What's my funnel this week — leads → replies → positives → closes? Forecast 6-month MRR."*
+
+The Pipeline Orchestrator routes; specialists do the work.
+
+---
+
+## The roster
+
+| Agent | Stage | What it does |
+|---|---|---|
+| **Pipeline Orchestrator** | — | Routes every user request to the right specialist(s). Never executes. |
+| **Lead Hunter** | 1 — Discovery | Google Maps Places search, skips dominant top results, filters to the article's "sweet spot" (low reviews, decent rating, weak/no website). Emits a CSV with personalized hooks. |
+| **Outreach Strategist** | 2 — Copy | Per-lead 3-piece pack: 50-word diagnosis, 100-word site brief, <70-word cold message. Exports CSV / Markdown / PDF. |
+| **Mockup Builder** | 3 — Landing page | Authors a 5-section single-page mockup (Hero, Services, About, Social Proof, Final CTA), generates per-section screenshots. |
+| **Mockup Imagery Agent** | 3 (support) | Niche-appropriate hero / services imagery via Gemini, OpenAI image, fal.ai. |
+| **Demo Video Agent** | 4 — Walkthrough | 10-second 9:16 cinematic walkthrough from screenshots (Higgsfield-style preset). |
+| **Outreach Sender** | 5 — Delivery | Email default (Gmail/Outlook), SMS for trades (Twilio), DMs for visual businesses (Instagram), LinkedIn for B2B. Schedules 4-day and 7-day follow-ups. |
+| **Pipeline Analyst** | Reporting | Funnel metrics, reply rate, close rate, and MRR forecast based on the article's math (10–15% reply, 30–50% close). |
+
+---
+
+## Quickstart
 
 ```bash
-git clone https://github.com/VRSEN/openswarm.git
-cd openswarm
+git clone https://github.com/raghuramdas/local-biz-swarm.git
+cd local-biz-swarm
+cp .env.example .env       # then fill in keys
+python swarm.py            # opens the TUI
 ```
-
-Then tell **Claude Code**, **Cursor**, or **Codex**:
-
-> _"Turn this into an SEO optimization swarm"_
-
-They'll automatically customize all agents for your use case.
-
-**Popular custom swarms:**
-
-- **SEO Swarm:** Keyword research + competitor analysis + blog writing
-- **Sales Swarm:** Lead research + outreach + proposal generation
-- **Marketing Swarm:** Campaign planning + creative assets + analytics
-- **Product Swarm:** Market research + feature specs + launch materials
-
-## ⚙️ API Keys & Setup
-
-The setup wizard walks you through everything, but you'll need at least one of these:
 
 **Required (choose one):**
+- `OPENAI_API_KEY` — for GPT-4o copy + Sora video, or
+- `ANTHROPIC_API_KEY` — for Claude
 
-- `OPENAI_API_KEY` - For GPT-4o and Sora video generation
-- `ANTHROPIC_API_KEY` - For Claude models
+**Required for Lead Hunter:**
+- `GOOGLE_PLACES_API_KEY` — Places API (New). Without it, Lead Hunter falls back to web search and lead metadata is incomplete.
+
+**Required for Outreach Sender (any subset):**
+- `COMPOSIO_API_KEY` + `COMPOSIO_USER_ID` — connect any of `GMAIL`, `OUTLOOK`, `TWILIO`, `INSTAGRAM`, `LINKEDIN`, `SLACK` toolkits at https://composio.dev.
 
 **Optional superpowers:**
+- `GOOGLE_API_KEY` — Gemini image gen + Veo video
+- `FAL_KEY` — Seedance / advanced video edits
+- `OUTREACH_MODEL` — override the model used by `GenerateOutreachPack` (e.g., `gpt-4o-mini`, `claude-sonnet-4-5`)
 
-- `COMPOSIO_API_KEY` - Unlock 10,000+ integrations (Gmail, Slack, GitHub, etc.)
-- `GOOGLE_API_KEY` - Gemini image generation + Veo video
-- `FAL_KEY` - Advanced video editing and effects
-- `SEARCH_API_KEY` - Web search for research agent
-
-Tools gracefully degrade when keys are missing — you'll get clear instructions on what to add.
+Tools gracefully degrade when keys are missing — you'll get a clear hint on what to add.
 
 ---
 
-## 🚀 Coming Soon
+## Math, the article version
 
-- **Agent Builder Agent** - Create custom swarms from a single prompt
-- **OpenClaw + Claude Code integration** - All agents in one place
+> Send 30 personalized sequences this weekend. 10–15% reply rate. 3–4 positive replies. 30–50% close rate.
+> 1–2 deals per weekend. Two weekends a month = $2,000–$4,000 new MRR. Six months = $12,000–$24,000 monthly recurring.
 
-⭐ **Star us on GitHub** to stay updated and help us prioritize features!
+Pipeline Analyst forecasts both the high and low cases against your real ledger.
 
-## 🏗️ For Developers
+---
 
-**Local development:**
+## Hacking on the swarm
 
-```bash
-git clone https://github.com/VRSEN/openswarm.git
-cd openswarm
-python swarm.py
-```
+See `AGENTS.md` for the folder ⇄ agent map and the conventions you need before touching `swarm.py` or any agent module. Two new tools were added in this fork:
 
-**Docker deployment:**
+- `deep_research/tools/GoogleMapsSearch.py`
+- `docs_agent/tools/GenerateOutreachPack.py`
 
-```bash
-git clone https://github.com/VRSEN/openswarm.git
-cd openswarm
-cp .env.example .env        # Add your API keys
-docker-compose up --build
-```
-
-**API server:**
+Everything else is upstream OpenSwarm, just rebranded for the pipeline. To pull upstream improvements:
 
 ```bash
-python server.py           # Runs on localhost:8080
+git fetch upstream
+git merge upstream/main
 ```
 
 ---
 
-## 📺 Learn More
+## Credit
 
-- **Watch the full demo:** [YouTube video →](https://youtu.be/c5DdXzqaeVU?si=rM2CNaZ8qVwMvqmz)
-- **Multi-agent framework:** [Agency Swarm](https://github.com/VRSEN/agency-swarm)
-- **External integrations:** [Composio](https://composio.dev)
-
----
-
-## 📄 License
-
-MIT — see [LICENSE](LICENSE).
-
-**Built with ❤️ by the team behind [Agency Swarm](https://github.com/VRSEN/agency-swarm)**
+Pipeline workflow from [@timbidefi's article](https://x.com/timbidefi/status/2051219084092506144). Multi-agent base from [VRSEN/OpenSwarm](https://github.com/VRSEN/OpenSwarm). MIT licensed.

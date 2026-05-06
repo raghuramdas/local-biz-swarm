@@ -8,7 +8,7 @@ from shared_tools.CopyFile import CopyFile
 
 from config import get_default_model, is_openai_provider
 
-# Import slide tools
+# Import slide tools (re-used here to author landing-page sections)
 from .tools import (
     InsertNewSlides,
     ModifySlide,
@@ -46,41 +46,44 @@ def _build_instructions() -> str:
     return (
         f"{body}\n\n"
         f"Current date/time (UTC): {now_utc}\n\n"
-        f"Existing project folders (do NOT reuse these names for a new presentation):\n{projects_block}"
+        f"Existing project folders (do NOT reuse these names for a new mockup):\n{projects_block}"
     )
 
 
 def create_slides_agent() -> Agent:
+    """Mockup Builder — Step 3 of the website-selling pipeline.
+
+    Folder is named `slides_agent` for upstream-import compatibility. The agent
+    is rebranded to "Mockup Builder" and tuned to produce a single-page
+    landing-page mockup as a sequence of full-bleed HTML "slides" (Hero,
+    3 Core Services, About, Social Proof, Final CTA), then export per-section
+    screenshots that the Demo Video Agent will turn into a 9:16 walkthrough.
+    """
     return Agent(
-        name="Slides Agent",
-        description="PowerPoint presentation specialist for creating, editing, and analyzing .pptx files",
+        name="Mockup Builder",
+        description=(
+            "Builds a single-page landing-page mockup for a local business. "
+            "Each section is authored as a full-bleed HTML 'slide' (Hero, Services, About, "
+            "Social Proof, Final CTA). Exports the live preview HTML, a PDF/PPTX-equivalent, "
+            "and 5 section screenshots feedable to the Demo Video Agent."
+        ),
         instructions=_build_instructions(),
-        # files_folder=os.path.join(current_dir, "files"),
-        # tools_folder=os.path.join(current_dir, "tools"),
         tools=[
-            # Slide creation and management: InsertNewSlides then ModifySlide
             InsertNewSlides,
             ModifySlide,
             ManageTheme,
             DeleteSlide,
             SlideScreenshot,
             ReadSlide,
-            # PPTX building
             BuildPptxFromHtmlSlides,
             RestoreSnapshot,
             CreatePptxThumbnailGrid,
             CheckSlideCanvasOverflow,
             CheckSlide,
-            # Image download
             DownloadImage,
             EnsureRasterImage,
             GenerateImage,
-            # Template-based editing
-            # ExtractPptxTextInventory,
-            # RearrangePptxSlidesFromTemplate,
-            # ApplyPptxTextReplacements,
             ImageSearch,
-            # Utility tools
             IPythonInterpreter,
             PersistentShellTool,
             LoadFileAttachment,
@@ -95,10 +98,10 @@ def create_slides_agent() -> Agent:
             response_include=["web_search_call.action.sources"] if is_openai_provider() else None,
         ),
         conversation_starters=[
-            "Create a new presentation about the benefits of using AI in the workplace.",
-            "Edit my existing presentation and improve the design.",
-            "Create a pitch deck for my startup idea.",
-            "Turn this document into a professional slide deck.",
+            "Build a mockup for [business name] from this site brief.",
+            "Top 5 leads from the CSV — build mockups for all of them in parallel.",
+            "Polish the hero on the existing mockup; the headline still feels generic.",
+            "Export 5 section screenshots from the latest mockup for the Demo Video Agent.",
         ],
     )
 
