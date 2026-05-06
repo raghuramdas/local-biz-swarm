@@ -48,3 +48,7 @@ moviepy<2
 fal-client
 httpx
 imageio-ffmpeg
+
+# LocalBizSwarm — pipeline-specific
+browser-use>=0.2.0          # drives lovable.dev (no public API / MCP)
+higgsfield-client>=0.1.0    # platform.higgsfield.ai DoP image-to-video

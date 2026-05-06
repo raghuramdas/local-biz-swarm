@@ -5,6 +5,8 @@ from shared_tools import CopyFile
 
 from config import get_default_model, is_openai_provider
 
+# HiggsfieldCinematicWalkthrough lives in ./tools/ and is auto-registered by tools_folder.
+
 
 def create_video_generation_agent() -> Agent:
     """Demo Video Agent — Step 4 of the website-selling pipeline.

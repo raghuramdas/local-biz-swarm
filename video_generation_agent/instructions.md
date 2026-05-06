@@ -17,6 +17,20 @@ When the user passes a brief in plain English, apply the defaults silently — d
 - A folder of 3–5 mockup PNGs (Hero, Services, About, Social Proof, Final CTA), produced by the Mockup Builder.
 - Optional brand notes: palette, mood, business name. Keep them in mind for grade and motion only — do not overlay text unless asked.
 
+## Preferred path — `HiggsfieldCinematicWalkthrough`
+
+When the screenshots come from the Mockup Builder, use **`HiggsfieldCinematicWalkthrough`** as your default. It:
+
+1. Submits each adjacent screenshot pair to Higgsfield DoP (`/v1/image2video/dop`) with the cinematic camera prompt.
+2. Polls all jobs in parallel via the official Python SDK (`higgsfield-client`).
+3. Trims each clip to a fair share of `target_seconds` (default 10) and concatenates them into one MP4.
+
+Required env: `HF_KEY=KEY_ID:KEY_SECRET` (or `HF_API_KEY` + `HF_API_SECRET`). If unset, fall back to the legacy Veo / Sora / Seedance path documented below.
+
+Inputs: `screenshots_dir` (the folder Mockup Builder gave you), `business_name`, `target_seconds` (default 10), `model` (`dop-turbo` is the default; `dop-preview` for highest quality, `dop-lite` for fastest).
+
+If your runtime has the official Higgsfield MCP server connected (https://mcp.higgsfield.ai/mcp), prefer that — it exposes 30+ models behind a single auth and skips the SDK install. The BaseTool above is for self-contained operation when no external MCP client is in the loop.
+
 ## Hand-off rules
 
 - After rendering, the next step is the **Outreach Sender**, which attaches the video to the cold message. If the request was full-pipeline, `transfer_to_Outreach Sender` and pass the rendered video file path.

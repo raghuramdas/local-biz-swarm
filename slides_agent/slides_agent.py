@@ -26,6 +26,7 @@ from .tools import (
     ImageSearch,
     GenerateImage,
 )
+from .tools.LovableBuildSite import LovableBuildSite
 
 _INSTRUCTIONS_PATH = Path(__file__).parent / "instructions.md"
 
@@ -69,6 +70,7 @@ def create_slides_agent() -> Agent:
         ),
         instructions=_build_instructions(),
         tools=[
+            LovableBuildSite,
             InsertNewSlides,
             ModifySlide,
             ManageTheme,
